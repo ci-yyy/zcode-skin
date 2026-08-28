@@ -42,6 +42,11 @@ bash apply-skin.sh
 重启动作由 macOS launchd 以系统任务执行，独立于 ZCode 进程（避免"退出了没人拉起来"），
 且内置保底逻辑：无论中间哪步失败，最后都会确保 ZCode 处于运行状态。
 
+> ⚠️ 工具目录不要放在「下载」「桌面」「文稿」这类受 macOS 隐私保护的文件夹里：
+> launchd 无法执行这些位置的脚本（报 `Operation not permitted`），`apply-skin.sh` 会失败。
+> 建议放在 `~/zcode-skin/` 等普通目录。日常切换主题（`use-skin.sh`）不受此影响，
+> 只有涉及 launchd 的首次启用受影响。
+
 之后如果 ZCode 被完全退出并用普通方式（启动台/访达）重新打开，端口消失、皮肤消失，
 重新执行一次 `bash apply-skin.sh` 即可。
 
