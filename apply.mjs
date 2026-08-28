@@ -9,14 +9,20 @@
 //   node apply.mjs --dry-run                只打印生成的 CSS，不连接 ZCode
 //   node apply.mjs --status                 查看当前皮肤状态
 //   node apply.mjs --list                   列出所有可用主题
+//   node apply.mjs --panel                  注入皮肤的同时注入「🎨 主题中心」按钮（守护进程没装时按钮的列表会加载失败）
+//   node apply.mjs --remove-panel           只移除主题中心按钮（不动皮肤）
 
+import { readFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_PORT, CdpSession, classifyTargets, listTargets, pickMainWindow } from "./lib/cdp.mjs";
 import { STYLE_ID, buildSkinCss, loadTheme } from "./lib/theme.mjs";
+import { writeState } from "./lib/state.mjs";
+import { panelInjectionScript, panelRemovalScript, skinInjectionScript, statusScript } from "./lib/inject.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const API_PORT = 9344;
 
 function parseArgs(argv) {
   const opts = {
@@ -26,6 +32,8 @@ function parseArgs(argv) {
     status: false,
     list: false,
     dryRun: false,
+    panel: false,
+    removePanel: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -35,6 +43,8 @@ function parseArgs(argv) {
     else if (arg === "--status") opts.status = true;
     else if (arg === "--list") opts.list = true;
     else if (arg === "--dry-run") opts.dryRun = true;
+    else if (arg === "--panel") opts.panel = true;
+    else if (arg === "--remove-panel") opts.removePanel = true;
     else throw new Error(`未知参数：${arg}`);
   }
   if (!Number.isInteger(opts.port)) throw new Error("--port 需要一个整数");
@@ -82,42 +92,6 @@ async function waitForMainWindow(port, waitMs) {
   throw new Error(`等不到 ZCode 主窗口（端口 ${port}）。看到的页面：\n${seen}`);
 }
 
-// 注入脚本：先删旧的同名 <style> 再插入新的（幂等，重复执行不会叠加）
-function injectionScript(css, themeId) {
-  return `(() => {
-    try {
-      const previous = document.getElementById(${JSON.stringify(STYLE_ID)});
-      if (previous) previous.remove();
-      const style = document.createElement("style");
-      style.id = ${JSON.stringify(STYLE_ID)};
-      style.setAttribute("data-zcode-skin", ${JSON.stringify(themeId)});
-      style.textContent = ${JSON.stringify(css)};
-      (document.head || document.documentElement).appendChild(style);
-      const computed = getComputedStyle(document.documentElement);
-      return {
-        applied: true,
-        bytes: style.textContent.length,
-        sidebarVar: computed.getPropertyValue("--color-sidebar").trim(),
-        backgroundVar: computed.getPropertyValue("--color-background").trim(),
-      };
-    } catch (error) {
-      return { applied: false, error: String(error) };
-    }
-  })()`;
-}
-
-const STATUS_SCRIPT = `(() => {
-  const style = document.getElementById(${JSON.stringify(STYLE_ID)});
-  const computed = getComputedStyle(document.documentElement);
-  return {
-    skinActive: !!style,
-    themeId: style ? style.getAttribute("data-zcode-skin") : null,
-    sidebarVar: computed.getPropertyValue("--color-sidebar").trim(),
-    backgroundVar: computed.getPropertyValue("--color-background").trim(),
-    url: location.href,
-  };
-})()`;
-
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
 
@@ -136,21 +110,39 @@ async function main() {
   const session = await new CdpSession(target.webSocketDebuggerUrl).open();
   try {
     if (opts.status) {
-      const status = await session.evaluate(STATUS_SCRIPT);
+      const status = await session.evaluate(statusScript());
       console.log(JSON.stringify(status, null, 2));
+      return;
+    }
+
+    if (opts.removePanel) {
+      const result = await session.evaluate(panelRemovalScript());
+      console.log(result?.removed ? "✅ 主题中心已移除" : "ℹ️ 主题中心本来就不在");
       return;
     }
 
     const theme = await loadTheme(opts.theme);
     const css = await buildSkinCss(theme, opts.theme);
-    const result = await session.evaluate(injectionScript(css, theme.id));
+    const result = await session.evaluate(skinInjectionScript(css, theme.id));
     if (!result?.applied) throw new Error(`注入失败：${result?.error}`);
+
+    await writeState(basename(opts.theme));
 
     console.log(`✅ 主题「${theme.name || theme.id}」已注入`);
     console.log(`   目标窗口：${target.url}`);
     console.log(`   CSS 大小：${result.bytes} 字节`);
     console.log(`   抽检 --color-sidebar = ${result.sidebarVar || "(空)"}`);
     console.log(`   抽检 --color-background = ${result.backgroundVar || "(空)"}`);
+
+    if (opts.panel) {
+      const panelSource = readFileSync(join(here, "lib", "panel.js"), "utf8");
+      const result = await session.evaluate(panelInjectionScript(panelSource, { port: API_PORT, styleId: STYLE_ID }));
+      console.log(
+        result?.injected
+          ? `🎨 主题中心按钮已注入（列表来自守护进程 127.0.0.1:${API_PORT}，没装守护进程时按钮列表会加载失败）`
+          : "🎨 主题中心按钮已存在，跳过",
+      );
+    }
   } finally {
     session.close();
   }
