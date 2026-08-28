@@ -6,7 +6,7 @@
 
 import { DEFAULT_PORT, CdpSession, classifyTargets, listTargets, pickMainWindow } from "./lib/cdp.mjs";
 import { panelRemovalScript, skinRemovalScript } from "./lib/inject.mjs";
-import { writeState } from "./lib/state.mjs";
+import { updateState } from "./lib/state.mjs";
 
 async function main() {
   const port = Number(process.argv[process.argv.indexOf("--port") + 1]) || DEFAULT_PORT;
@@ -26,7 +26,7 @@ async function main() {
   try {
     const skinResult = await session.evaluate(skinRemovalScript());
     const panelResult = await session.evaluate(panelRemovalScript());
-    await writeState(null);
+    await updateState({ theme: null });
     const computed = await session.evaluate(
       `(() => getComputedStyle(document.documentElement).getPropertyValue("--color-sidebar").trim())()`,
     );

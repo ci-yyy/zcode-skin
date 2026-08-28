@@ -41,10 +41,31 @@ bash use-skin.sh 还原        # 移除皮肤，恢复 ZCode 官方外观
 安装守护进程后（见下一节），ZCode 界面右下角会出现一个半透明的 🎨 圆形按钮：
 
 - 点开就是主题列表（色卡预览 + 深浅图标 + 当前主题打勾），点一下立即换肤
+- **＋ 自定义图片**：选一张图，自动取色/判深浅/校正主色，当场生成新主题并换上
+  （与终端 `create-theme.mjs` 同一套逻辑）
+- **🎲 随机主题**：随机换一套（避开当前主题，不连续重复）
+- **🔁 常驻开关**：默认开。关掉后本次会话皮肤继续用，ZCode 下次启动恢复官方外观
+- **📖 阅读增强开关**：默认关。开启后 AI 回复和思考过程块加 90% 主题自适应半透明底色，
+  背景图主题下文字更容易读
+- **● 收起为小圆点**：把 🎨 按钮收成小圆点（Cmd+点击按钮也能切换），小圆点悬停放大、点击照常打开
 - 底部「还原官方外观」按钮一键去皮肤
 - 终端 `use-skin.sh` 和面板两边切换会互相同步（谁最后操作听谁的）
 
-按钮和面板在 ZCode 刷新或升级后消失的话，守护进程 5 秒内会自动补回来。
+按钮和面板在 ZCode 刷新或升级后消失的话，守护进程 5 秒内会自动补回来（「🔁 常驻」关闭时除外）。
+
+## 「ZCode 皮肤.app」启动器（可选）
+
+```bash
+bash make-launcher.sh
+```
+
+在 `~/Applications` 生成「ZCode 皮肤.app`，双击即可：
+
+- ZCode 在跑、皮肤丢了 → 按上次主题自动恢复（**不重启 ZCode**）
+- 调试端口丢了（ZCode 被普通方式重启过）→ 弹窗指引恢复命令
+- 顺带自检守护进程，没在跑会自动拉起
+
+电脑重启、ZCode 升级或皮肤意外丢失后，双击这个 App 就行，不用记命令。
 
 ## 皮肤守护进程（LaunchAgent）
 
@@ -55,14 +76,16 @@ bash uninstall-daemon.sh    # 卸载
 
 守护进程装好后做三件事：
 
-1. **主题中心**：给 ZCode 界面注入 🎨 按钮和面板（丢了自动补）
-2. **皮肤保活**：ZCode 刷新/升级导致皮肤丢失时，自动按上次用的主题重新注入（每 5 秒巡检一次）
+1. **主题中心**：给 ZCode 界面注入 🎨 按钮和面板（丢了自动补），并提供面板用的
+   主题列表/CSS/上传/随机/设置接口
+2. **皮肤保活**：ZCode 刷新/升级导致皮肤丢失时，自动按上次用的主题重新注入（每 5 秒巡检一次；
+   「🔁 常驻」开关关闭时停止注入，本次会话用完即止）
 3. **恢复提醒**：ZCode 被普通方式（启动台/访达）重启后调试端口会消失，此时弹一条 macOS
    系统通知提醒你执行 `bash apply-skin.sh` 恢复。**守护进程自己绝不会重启 ZCode**。
 
 守护进程的本地服务只监听 127.0.0.1:9344（主题列表/CSS 下发给面板用），日志在
 `logs/daemon.log`。卸载守护进程后，已注入的皮肤和按钮还在，但按钮的列表会加载失败
-（可用 `node apply.mjs --remove-panel` 把按钮移掉）。
+（可用 `node apply.mjs --remove-panel` 把按钮移掉）。安全边界见 [SECURITY.md](SECURITY.md)。
 
 ## 首次启用
 
@@ -103,7 +126,8 @@ bash use-skin.sh 主题名
 
 自动完成：分析图片取色（统计色相得到主色和辅色、计算整体亮度）→ 按亮度自动判定
 深色/浅色主题 → 主色过暗或过亮时自动校正到可读区间（保持色相）→ 图片设为整窗背景 →
-生成完整主题目录进入主题库。
+生成完整主题目录进入主题库。缺背景图的话，[docs/theme-prompts.md](docs/theme-prompts.md)
+里有 8 套风格现成的生图提示词。
 
 参数：
 
@@ -190,6 +214,7 @@ node apply.mjs --dry-run --theme themes/my-theme
 | `bash use-skin.sh <编号/名字/还原>` | 直接切换 / 还原 |
 | `bash install-daemon.sh` | 安装守护进程：🎨 主题中心 + 皮肤自动恢复 + 恢复提醒 |
 | `bash uninstall-daemon.sh` | 卸载守护进程 |
+| `bash make-launcher.sh` | 生成「ZCode 皮肤.app」启动器到 ~/Applications |
 | `bash apply-skin.sh` | 首次启用：带调试端口重启 ZCode 并注入（ZCode 被普通重启后也用它恢复） |
 | `node apply.mjs --list` | 列出全部主题 |
 | `node apply.mjs --status` | 查询当前皮肤状态（是否生效、主题 ID、关键变量值、主题中心是否在位） |
@@ -216,18 +241,25 @@ zcode-skin/
 ├── restore.mjs               # 还原
 ├── relaunch-via-launchd.sh   # apply-skin.sh 调用的重启器（无需直接使用）
 ├── launch.sh                 # 旧版启动器（已被 apply-skin.sh 取代，保留备用）
-├── state.json                # 当前主题记忆（终端/面板共用，已 gitignore）
+├── make-launcher.sh          # 生成「ZCode 皮肤.app」启动器
+├── state.json                # 当前主题与设置（终端/面板共用，已 gitignore）
 ├── lib/
 │   ├── cdp.mjs               # CDP 客户端（零依赖，含主窗口识别）
 │   ├── theme.mjs             # theme.json 校验 + 注入 CSS 生成（VAR_MAP 在这）
 │   ├── palette.mjs           # 4 色→界面变量映射 + 主色可见度校正
-│   ├── inject.mjs            # 所有注入脚本片段（皮肤/面板/状态检查）
+│   ├── autocolor.mjs         # 图片取色→主题生成（终端与面板上传共用）
+│   ├── inject.mjs            # 所有注入脚本片段（皮肤/面板/阅读增强/状态检查）
 │   ├── panel.js              # 主题中心界面（注入 ZCode 内运行）
-│   ├── state.mjs             # state.json 读写
+│   ├── state.mjs             # state.json 读写（主题 + 设置开关）
 │   └── menu.mjs              # use-skin.sh 交互菜单
+├── skill/zcode-skin/         # AI Skill（可交给 ZCode/Agent 直接操作本工具）
+├── docs/theme-prompts.md     # 主题背景图生成提示词库（8 套风格）
 ├── themes/                   # 22 套主题，一目录一套
 └── logs/                     # 运行日志（已 gitignore）
 ```
+
+其他文档：[CHANGELOG.md](CHANGELOG.md) 更新日志 · [SECURITY.md](SECURITY.md) 安全边界 ·
+[README.en.md](README.en.md) 英文版 · [docs/theme-prompts.md](docs/theme-prompts.md) 提示词库
 
 ## 注意事项
 

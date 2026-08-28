@@ -18,7 +18,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_PORT, CdpSession, classifyTargets, listTargets, pickMainWindow } from "./lib/cdp.mjs";
 import { STYLE_ID, buildSkinCss, loadTheme } from "./lib/theme.mjs";
-import { writeState } from "./lib/state.mjs";
+import { updateState } from "./lib/state.mjs";
 import { panelInjectionScript, panelRemovalScript, skinInjectionScript, statusScript } from "./lib/inject.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -126,7 +126,7 @@ async function main() {
     const result = await session.evaluate(skinInjectionScript(css, theme.id));
     if (!result?.applied) throw new Error(`注入失败：${result?.error}`);
 
-    await writeState(basename(opts.theme));
+    await updateState({ theme: basename(opts.theme) });
 
     console.log(`✅ 主题「${theme.name || theme.id}」已注入`);
     console.log(`   目标窗口：${target.url}`);
