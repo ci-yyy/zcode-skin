@@ -43,7 +43,8 @@ mkdirSync(join(here, "logs"), { recursive: true });
 function log(msg) {
   const line = `[${new Date().toISOString()}] ${msg}`;
   appendFileSync(LOG_FILE, line + "\n");
-  if (process.argv.includes("--foreground")) console.log(line);
+  // launchd 场景下 stdout 没人看；只有前台调试时才打印
+  if (process.argv.includes("--foreground")) process.stdout.write(line + "\n");
 }
 
 // ---------- 主题工具 ----------
@@ -145,7 +146,9 @@ async function pollOnce() {
   }
 
   if (!portUp) {
-    if (sawPortUp) notifyPortMissing();
+    // 常驻关了或本来就没选过主题 → 用户已明确不需要自动恢复，不弹通知
+    const state = await readState();
+    if (sawPortUp && state.persistence && state.theme) notifyPortMissing();
     sawPortUp = false;
     return;
   }
@@ -172,7 +175,9 @@ async function pollOnce() {
       log(`巡检：重注入失败 ${e.message}`);
     }
   }
-  if (state.theme && !health.panel) {
+  // 主题中心按钮独立于皮肤维护：还原官方外观（theme=null）后按钮也要在，
+  // 否则用户没法再从面板选主题
+  if (!health.panel) {
     try {
       await injectPanel();
       log("巡检：主题中心按钮丢失，已重新注入");
@@ -180,7 +185,7 @@ async function pollOnce() {
       log(`巡检：面板重注入失败 ${e.message}`);
     }
   }
-  if (state.theme && state.readingEnhance && !health.reading) {
+  if (state.readingEnhance && !health.reading) {
     try {
       await injectReading();
       log("巡检：阅读增强丢失，已重新注入");
@@ -350,9 +355,12 @@ const server = http.createServer(async (req, res) => {
           name: customName || null,
           id: null,
           appearance: "auto",
-          force: true, // 面板上传同名覆盖
+          force: true, // 同名/同图幂等覆盖
           themesRoot: THEMES_ROOT,
         }));
+        if (result.dir.includes("..") || result.dir.includes("/")) {
+          return json(res, 500, { ok: false, error: "生成的主题目录名非法" });
+        }
         log(`面板：上传图片生成主题「${result.dir}」`);
         return json(res, 200, { ok: true, dir: result.dir, name: result.name, appearance: result.appearance });
       } finally {
