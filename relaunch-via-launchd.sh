@@ -36,9 +36,11 @@ for candidate in \
 done
 [ -n "$NODE_BIN" ] && log "使用 node：$NODE_BIN" || log "警告：找不到 node，注入步骤会失败"
 
+# 主进程探测：ps comm 精确匹配。不能用 `ps aux | grep "MacOS/ZCode"`：
+# 主进程 args 只显示 "ZCode" 匹配不上，反而 Computer Use broker 的路径
+# （MacOS/ZCode Computer Use）会误匹配，导致退出等待空转、保底误判。
 zcode_running() {
-  ps aux | grep -v grep | grep -q "MacOS/ZCode" && return 0
-  return 1
+  ps -eo comm= | grep -qx "ZCode"
 }
 
 wait_exit() {

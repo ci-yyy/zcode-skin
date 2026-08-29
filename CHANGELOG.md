@@ -12,7 +12,10 @@
   需要行动的指引才弹窗；生成时自动做结构/语法自检 + 免打扰自测跑一遍
 - **主进程探测失效**：本机实测 `pgrep -x "ZCode"` 匹配不到 ZCode 主进程（只能
   列出 Helper），launch.sh 的退出等待会空转、launcher 误报「ZCode 没在运行」。
-  launch.sh 与 launcher-app.sh 统一改用 `ps -eo comm= | grep -qx "ZCode"`
+  launch.sh、launcher-app.sh、relaunch-via-launchd.sh 统一改用
+  `ps -eo comm= | grep -qx "ZCode"`（relaunch 原来的 `ps aux | grep
+  "MacOS/ZCode"` 还会误匹配 Computer Use broker 的路径，导致退出等待空转、
+  保底拉起误判）
 
 残留治理（P1）：
 
@@ -34,6 +37,13 @@
 - daemon.mjs 的 HTTP API（路由/Origin 校验/请求体读取，约 270 行）拆到
   `lib/http-api.mjs`，daemon.mjs 只保留装配与生命周期（568→310 行）；
   daemon.mjs 再导出 `createRequestHandler` 保持旧引用兼容
+
+文档修正：
+
+- SECURITY.md 的上传体积上限从 20MB 更正为 12MB（1.2.0 收紧时漏改）
+- 1.2.0 段的测试套件用例数从 106 更正为 111（笔误）
+
+测试：111 → 114 个用例全绿（新增注入目标白名单与畸形 url 回归）
 
 ## 1.2.0（2026-08-29）安全加固 + 测试套件
 
@@ -72,7 +82,7 @@
 
 测试：
 
-- 新增 `node --test` 测试套件（零依赖，106 个用例）：theme 校验与 CSS 生成、palette
+- 新增 `node --test` 测试套件（零依赖，111 个用例）：theme 校验与 CSS 生成、palette
   映射与主色校正边界、state 并发与锁回收、CDP 分类与假 WebSocket 错误路径、API 路由
   （含 Origin 校验/目录穿越/体积上限）、菜单归一化匹配、autocolor 生成流程
 - 新增 `package.json`（`npm test` 直达）；`daemon.mjs`/`lib/menu.mjs` 支持被 import
