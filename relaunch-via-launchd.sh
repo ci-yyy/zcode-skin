@@ -132,4 +132,6 @@ fi
 # ---------- 保底 ----------
 ensure_zcode_up
 log "==== 结束 | 注入结果: $([ $inject_result -eq 0 ] && echo 成功 || echo 失败) ===="
+# 结果标记：apply-skin.sh 靠它判断任务结束（launchctl list 里条目跑完也挂着，不可靠）
+printf '%s\n' "$inject_result" > "${ZCODE_SKIN_RESULT_FILE:-/tmp/zcode-skin-last-run.result}"
 exit $inject_result

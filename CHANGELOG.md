@@ -1,5 +1,40 @@
 # 更新日志（CHANGELOG）
 
+## 1.2.1（2026-08-29）启动器重写 + 残留治理
+
+修复（P0）：
+
+- **「ZCode 皮肤.app」双击闪退修复**：旧版 `make-launcher.sh` 生成的 applet
+  bundle 结构不标准（osacompile 产物是单个编译脚本文件而非 bundle），包装脚本
+  执行的 `main.applet/Contents/MacOS/applet` 路径不存在，双击即闪退。重写为
+  标准结构：bash 包装作 CFBundleExecutable，逻辑全部移入仓库内 `launcher-app.sh`
+  （升级逻辑不用重新生成 app）；`LSUIElement=true` 双击不占 Dock，成功走系统通知、
+  需要行动的指引才弹窗；生成时自动做结构/语法自检 + 免打扰自测跑一遍
+- **主进程探测失效**：本机实测 `pgrep -x "ZCode"` 匹配不到 ZCode 主进程（只能
+  列出 Helper），launch.sh 的退出等待会空转、launcher 误报「ZCode 没在运行」。
+  launch.sh 与 launcher-app.sh 统一改用 `ps -eo comm= | grep -qx "ZCode"`
+
+残留治理（P1）：
+
+- **apply-skin.sh 不再留 launchd 残留**：改用 `launchctl bootstrap/bootout`；完成
+  检测从 `launchctl list | grep`（一次性任务条目跑完仍挂着，会白等满 180 秒）
+  改为 relaunch 脚本写结果标记文件；EXIT trap 保证 Ctrl+C / 关终端也注销任务、
+  删除 /tmp 临时 plist——这正是此前手动清理 `com.zcode.skin.relaunch` 残留的根因
+- install/uninstall-daemon.sh 同步迁移到 bootstrap/bootout；安装后健康检查从
+  单次 curl 改为最长 10 秒重试，launchd 拉起慢不再误报失败
+
+安全加固（P1）：
+
+- **注入目标白名单收紧**：`classifyTargets` 的主窗口判定必须 `file://` 协议 +
+  `out/renderer/index.html` 路径双条件（防 http 网页构造撞名 URL 被注入）；
+  `pickMainWindow` 回退分支只认 `file://` 页面，http(s) 页面绝不作为注入目标
+
+结构（P2）：
+
+- daemon.mjs 的 HTTP API（路由/Origin 校验/请求体读取，约 270 行）拆到
+  `lib/http-api.mjs`，daemon.mjs 只保留装配与生命周期（568→310 行）；
+  daemon.mjs 再导出 `createRequestHandler` 保持旧引用兼容
+
 ## 1.2.0（2026-08-29）安全加固 + 测试套件
 
 安全（P0）：

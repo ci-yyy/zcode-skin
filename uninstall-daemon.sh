@@ -8,6 +8,7 @@ LABEL="dev.zcode.skin.daemon"
 PLIST="$HOME/Library/LaunchAgents/${LABEL}.plist"
 
 if [ -f "$PLIST" ]; then
+  launchctl bootout "gui/$(id -u)/${LABEL}" >/dev/null 2>&1 || true
   launchctl unload "$PLIST" >/dev/null 2>&1 || true
   rm -f "$PLIST"
   echo "✅ 皮肤守护进程已卸载"

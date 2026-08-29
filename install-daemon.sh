@@ -39,8 +39,9 @@ esac
 # 会被 launchd 每 10 秒无限重拉。SuccessfulExit=false 后干净退出不重启，
 # SIGTERM（卸载/重装）走 exit(0) 也不会复活。
 
-# 重复安装时先卸旧的
+# 重复安装时先卸旧的（bootout 对已注销的 label 会报错，忽略即可）
 if [ -f "$PLIST" ]; then
+  launchctl bootout "gui/$(id -u)/${LABEL}" >/dev/null 2>&1 || true
   launchctl unload "$PLIST" >/dev/null 2>&1 || true
 fi
 
@@ -67,10 +68,19 @@ cat > "$PLIST" <<EOF
 </plist>
 EOF
 
-launchctl load "$PLIST"
-sleep 1
+launchctl bootstrap "gui/$(id -u)" "$PLIST" || launchctl load "$PLIST"
 
-if curl -sf --max-time 2 http://127.0.0.1:9344/health >/dev/null 2>&1; then
+# 健康检查带重试：launchd 拉起 + node 启动要一小会儿，单次 curl 容易误报
+healthy=0
+for _ in $(seq 1 10); do
+  if curl -sf --max-time 2 http://127.0.0.1:9344/health >/dev/null 2>&1; then
+    healthy=1
+    break
+  fi
+  sleep 1
+done
+
+if [ "$healthy" = "1" ]; then
   echo "✅ 皮肤守护进程已安装并运行"
   echo "   · ZCode 界面右下角的 🎨 主题中心按钮已可用（最多等 5 秒自动出现）"
   echo "   · ZCode 刷新/升级后皮肤会自动补上"

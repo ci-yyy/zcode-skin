@@ -17,10 +17,13 @@ mkdir -p "$LOG_DIR"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$1" | tee -a "$LOG"; }
 
+# 主进程探测：ps comm 精确匹配（pgrep -x "ZCode" 在部分机器上匹配不到主进程）
+zcode_running() { ps -eo comm= | grep -qx "ZCode"; }
+
 wait_zcode_exit() {
   local i
   for i in $(seq 1 40); do
-    pgrep -x "ZCode" >/dev/null 2>&1 || return 0
+    zcode_running || return 0
     sleep 0.25
   done
   return 1
@@ -37,12 +40,12 @@ if ! wait_zcode_exit; then
   log "10 秒还没退出，发送强制退出信号……"
   pkill -TERM -x "ZCode" >>"$LOG" 2>&1 || true
   sleep 3
-  if pgrep -x "ZCode" >/dev/null 2>&1; then
+  if zcode_running; then
     pkill -KILL -x "ZCode" >>"$LOG" 2>&1 || true
     sleep 1
   fi
 fi
-pgrep -x "ZCode" >/dev/null 2>&1 && log "警告：ZCode 进程仍在，继续尝试启动"
+zcode_running && log "警告：ZCode 进程仍在，继续尝试启动"
 sleep 1
 
 # ---------- 第 2 步：带调试端口重启 ----------

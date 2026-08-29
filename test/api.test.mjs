@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
-import { createRequestHandler } from "../daemon.mjs";
+import { createRequestHandler } from "../lib/http-api.mjs";
 
 function fakeReq({ method = "GET", url = "/", headers = {}, body = null }) {
   const req = new Readable({ read() {} });

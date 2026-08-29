@@ -62,6 +62,29 @@ test("pickMainWindow 无精确匹配时唯一的非弹窗页面可当选", () =>
   assert.equal(ambiguous, false);
 });
 
+test("撞主窗口路径名的 http 页面不认作 main（防注入网页）", () => {
+  const pages = classifyTargets([
+    { type: "page", url: "http://evil.example.com/out/renderer/index.html", webSocketDebuggerUrl: "ws://x" },
+  ]);
+  assert.equal(pages[0].kind, "unknown");
+  assert.equal(pickMainWindow(pages).target, null);
+});
+
+test("回退目标只认 file://，唯一 http 页面也不选", () => {
+  const { target } = pickMainWindow(classifyTargets([
+    { type: "page", url: "https://some-site.test/", webSocketDebuggerUrl: "ws://x" },
+  ]));
+  assert.equal(target, null);
+});
+
+test("pickMainWindow 畸形 url（非字符串）不抛且不入选", () => {
+  const { target } = pickMainWindow([
+    { type: "page", url: 123, webSocketDebuggerUrl: "ws://x", kind: "unknown" },
+    { type: "page", url: undefined, webSocketDebuggerUrl: "ws://y", kind: "unknown" },
+  ]);
+  assert.equal(target, null);
+});
+
 test("pickMainWindow 无候选返回 null", () => {
   assert.equal(pickMainWindow(classifyTargets([])).target, null);
   assert.equal(pickMainWindow(classifyTargets([{ type: "page", url: PANEL_URL }])).target, null);

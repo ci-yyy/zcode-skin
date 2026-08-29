@@ -42,11 +42,13 @@ session data — only CSS variables are overridden, so the UI stays fully native
 - **Skin daemon (LaunchAgent)**: re-injects the skin within seconds if ZCode reloads or updates,
   serves the theme list to the panel, and sends a macOS notification when the debug port is lost.
   It never restarts ZCode on its own.
-- **"ZCode 皮肤.app" launcher**: double-click to restore the last skin, self-check the daemon, or
-  get instructions when the debug port is missing.
+- **"ZCode 皮肤.app" launcher**: double-click to restore the last skin (system notification on
+  success), self-check the daemon, or get instructions when the debug port is missing. The app is
+  a thin wrapper; the actual logic lives in `launcher-app.sh` in the repo, so updates don't
+  require regenerating it.
 - **Reading enhancement** (off by default): an optional 90% theme-aware translucent backdrop for
   AI replies and thinking blocks.
-- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 111 cases).
+- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 114 cases).
 
 ## Quick start
 

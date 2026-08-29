@@ -19,7 +19,7 @@
 
 > ## 🆕 1.2.0 更新：安全加固 + 测试套件
 >
-> 主题服务（9344）加上 Origin 校验——浏览器里网页的跨站请求一律 403，只有 ZCode 注入面板和本机进程放行；注入体积上限 16MB、上传收紧到 12MB；state.json 加并发写保护（文件锁 + 原子改名）；守护进程复用 CDP 长连接，日志超 1MB 自动轮转。新增 `node diag.mjs` 一站式体检和 111 个用例的零依赖测试套件（`npm test`）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
+> 主题服务（9344）加上 Origin 校验——浏览器里网页的跨站请求一律 403，只有 ZCode 注入面板和本机进程放行；注入体积上限 16MB、上传收紧到 12MB；state.json 加并发写保护（文件锁 + 原子改名）；守护进程复用 CDP 长连接，日志超 1MB 自动轮转。新增 `node diag.mjs` 一站式体检和 114 个用例的零依赖测试套件（`npm test`）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 它长这样
 
@@ -84,7 +84,7 @@ ZCode 刷新或升级后按钮和面板消失的话，守护进程 5 秒内自�
 2. **皮肤保活**：ZCode 刷新/升级导致皮肤丢失时，每 5 秒巡检一次自动补回（「常驻」关闭时停止注入）
 3. **恢复提醒**：ZCode 被普通方式（启动台/访达）重启后调试端口消失，弹 macOS 系统通知提醒恢复。**守护进程自己绝不会重启 ZCode**
 
-「ZCode 皮肤.app」启动器（`make-launcher.sh` 生成到 `~/Applications`）双击即可：ZCode 在跑但皮肤丢了 → 按上次主题自动恢复（不重启 ZCode）；端口丢了 → 弹窗指引恢复命令；顺带自检守护进程。电脑重启、ZCode 升级或皮肤意外丢失后，双击这个 App 就行。
+「ZCode 皮肤.app」启动器（`make-launcher.sh` 生成到 `~/Applications`）双击即可：ZCode 在跑但皮肤丢了 → 按上次主题自动恢复（不重启 ZCode），成功后弹系统通知；端口丢了 → 弹窗指引恢复命令；顺带自检守护进程（没在跑就重新拉起）。电脑重启、ZCode 升级或皮肤意外丢失后，双击这个 App 就行。启动器逻辑住在仓库里的 `launcher-app.sh`（app 只是指向它的薄包装），改逻辑不用重新生成。
 
 卸载守护进程后，已注入的皮肤和按钮还在，但按钮的列表会加载失败（可用 `node apply.mjs --remove-panel` 把按钮移掉）。
 
@@ -170,7 +170,7 @@ ZCode 刷新或升级后按钮和面板消失的话，守护进程 5 秒内自�
 | `node create-theme.mjs --image <图> --name <名>` | 图片生成新主题 |
 | `node restore.mjs` | 还原官方外观（效果同 `use-skin.sh 还原`） |
 | `node diag.mjs` | 一站式体检：守护进程/端口/主窗口/注入状态/state.json |
-| `npm test` | 跑测试套件（`node --test`，111 个用例，零依赖） |
+| `npm test` | 跑测试套件（`node --test`，114 个用例，零依赖） |
 
 ## 文件结构
 
@@ -188,6 +188,7 @@ zcode-skin/
 ├── relaunch-via-launchd.sh   # apply-skin.sh 调用的重启器（无需直接使用）
 ├── launch.sh                 # 旧版启动器（已被 apply-skin.sh 取代，保留备用）
 ├── make-launcher.sh          # 生成「ZCode 皮肤.app」启动器
+├── launcher-app.sh           # 启动器实际逻辑（app 双击后执行的本体）
 ├── package.json              # npm test 入口（零依赖，要求 Node 22+）
 ├── state.json                # 当前主题与设置（终端/面板共用，已 gitignore）
 ├── lib/
@@ -196,6 +197,7 @@ zcode-skin/
 │   ├── palette.mjs           # 4 色→界面变量映射 + 主色可见度校正
 │   ├── autocolor.mjs         # 图片取色→主题生成（终端与面板上传共用）
 │   ├── inject.mjs            # 所有注入脚本片段（皮肤/面板/阅读增强/状态检查）
+│   ├── http-api.mjs          # 主题数据服务 HTTP API（路由 + Origin 校验 + 上传解析）
 │   ├── panel.js              # 主题中心界面（注入 ZCode 内运行）
 │   ├── state.mjs             # state.json 读写（主题 + 设置开关）
 │   └── menu.mjs              # use-skin.sh 交互菜单
