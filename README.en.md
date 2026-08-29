@@ -17,14 +17,15 @@ One image becomes one theme. After setup, switching skins is a single click in t
 
 </div>
 
-> ## 🆕 1.2.0: security hardening + test suite
+> ## 🆕 1.2.1: launcher crash fix + launchd residue cleanup
 >
-> The theme API (port 9344) now validates the Origin header — cross-site requests from browser
-> pages get 403; only the injected panel (file://) and local processes are allowed. Injections are
-> capped at 16MB, uploads at 12MB. `state.json` gained concurrent-write protection (file lock +
-> atomic rename), the daemon reuses a cached CDP session, and logs rotate past 1MB. New in this
-> release: `node diag.mjs` one-shot health check and a zero-dependency test suite with 111 cases
-> (`npm test`). Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
+> The "ZCode 皮肤.app" launcher no longer crashes on double-click: the old applet bundle was
+> malformed, so it was rebuilt as a standard bash-wrapper app whose logic lives in
+> `launcher-app.sh` (logic updates no longer require regenerating the app). `apply-skin.sh` now
+> uses `launchctl bootstrap/bootout` with a result-marker file and an EXIT trap — no leftover
+> LaunchAgent registrations even if interrupted with Ctrl+C. CDP injection targets are restricted
+> to `file://` pages only, and the daemon's HTTP API moved to `lib/http-api.mjs`. Test suite:
+> 114 cases, all green (`npm test`). Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
 
 ## What it is
 
@@ -131,7 +132,7 @@ Anime artwork belongs to its respective rights holders; for personal use only.
 | `node create-theme.mjs --image <file> --name <name>` | Build a theme from an image |
 | `node restore.mjs` | Restore the official look |
 | `node diag.mjs` | One-shot health check with fix hints |
-| `npm test` | Run the test suite (111 cases, zero deps) |
+| `npm test` | Run the test suite (114 cases, zero deps) |
 
 ## Honest notes
 

@@ -17,9 +17,9 @@
 
 </div>
 
-> ## 🆕 1.2.0 更新：安全加固 + 测试套件
+> ## 🆕 1.2.1 更新：启动器闪退修复 + launchd 残留治理
 >
-> 主题服务（9344）加上 Origin 校验——浏览器里网页的跨站请求一律 403，只有 ZCode 注入面板和本机进程放行；注入体积上限 16MB、上传收紧到 12MB；state.json 加并发写保护（文件锁 + 原子改名）；守护进程复用 CDP 长连接，日志超 1MB 自动轮转。新增 `node diag.mjs` 一站式体检和 114 个用例的零依赖测试套件（`npm test`）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
+> 「ZCode 皮肤.app」双击闪退修复：旧版 applet bundle 结构不标准，重写为标准结构、逻辑移入仓库内 `launcher-app.sh`（升级逻辑不用重新生成 App）；`apply-skin.sh` 改用 `bootstrap/bootout` + 结果标记文件 + EXIT trap，Ctrl+C 中断也不再留下 launchd 注册残留；注入目标白名单收紧为 `file://` 协议双条件；守护进程的 HTTP API 拆到 `lib/http-api.mjs`。测试套件 114 个用例全绿（`npm test`）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 它长这样
 
@@ -201,7 +201,7 @@ zcode-skin/
 │   ├── panel.js              # 主题中心界面（注入 ZCode 内运行）
 │   ├── state.mjs             # state.json 读写（主题 + 设置开关）
 │   └── menu.mjs              # use-skin.sh 交互菜单
-├── test/                     # 测试套件（7 个文件，111 个用例，node --test）
+├── test/                     # 测试套件（7 个文件，114 个用例，node --test）
 ├── skill/zcode-skin/         # AI Skill（可交给 ZCode/Agent 直接操作本工具）
 ├── docs/theme-prompts.md     # 主题背景图生成提示词库（8 套风格）
 ├── themes/                   # 22 套主题，一目录一套
