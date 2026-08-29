@@ -14,7 +14,7 @@
 
 import { readFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_PORT, CdpSession, classifyTargets, listTargets, pickMainWindow } from "./lib/cdp.mjs";
 import { STYLE_ID, buildSkinCss, loadTheme } from "./lib/theme.mjs";
@@ -126,7 +126,15 @@ async function main() {
     const result = await session.evaluate(skinInjectionScript(css, theme.id));
     if (!result?.applied) throw new Error(`注入失败：${result?.error}`);
 
-    await updateState({ theme: basename(opts.theme) });
+    // 只把 themes/ 下的目录写进 state.json：外部路径守护进程恢复时找不到，
+    // 还会反复报错。外部主题依然能注入，只是不记为可恢复状态
+    const themesRoot = resolve(here, "themes");
+    const themeAbs = resolve(opts.theme);
+    if (themeAbs === themesRoot || !themeAbs.startsWith(themesRoot + sep)) {
+      console.warn(`⚠️ 主题在 themes/ 之外（${opts.theme}），本次注入生效但不写入 state.json；换到 themes/ 下才能被守护进程自动恢复`);
+    } else {
+      await updateState({ theme: basename(opts.theme) });
+    }
 
     console.log(`✅ 主题「${theme.name || theme.id}」已注入`);
     console.log(`   目标窗口：${target.url}`);

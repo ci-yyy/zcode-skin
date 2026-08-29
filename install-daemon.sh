@@ -34,6 +34,11 @@ case "$DIR" in
     ;;
 esac
 
+# KeepAlive 用字典形式：只在非正常退出（崩溃/被杀）时重启。
+# 纯 true 的话 exit(0) 也会被拉起——9344 端口被占时守护进程安静退出后
+# 会被 launchd 每 10 秒无限重拉。SuccessfulExit=false 后干净退出不重启，
+# SIGTERM（卸载/重装）走 exit(0) 也不会复活。
+
 # 重复安装时先卸旧的
 if [ -f "$PLIST" ]; then
   launchctl unload "$PLIST" >/dev/null 2>&1 || true
@@ -51,7 +56,10 @@ cat > "$PLIST" <<EOF
     <string>${DIR}/daemon.mjs</string>
   </array>
   <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key><false/>
+  </dict>
   <key>ThrottleInterval</key><integer>10</integer>
   <key>StandardOutPath</key><string>${LOG_DIR}/launchd-out.log</string>
   <key>StandardErrorPath</key><string>${LOG_DIR}/launchd-err.log</string>
