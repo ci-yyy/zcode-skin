@@ -45,6 +45,7 @@
 bash apply-skin.sh        # 退出 ZCode → 带端口(9343)重启 → 注入默认皮肤，会话数据不丢
 bash install-daemon.sh    # 可选：ZCode 界面里的 🎨 主题中心 + 皮肤保活 + 恢复提醒
 bash make-launcher.sh     # 可选：「ZCode 皮肤.app」到 ~/Applications，双击恢复上次皮肤
+bash uninstall.sh         # 彻底卸载：页面注入 + 守护进程 + 启动器 + launchd 注册 + 工具目录
 ```
 
 日常换肤**不重启 ZCode、立即生效**：
@@ -158,6 +159,7 @@ ZCode 刷新或升级后按钮和面板消失的话，守护进程 5 秒内自�
 | `bash use-skin.sh <编号/名字/还原>` | 直接切换 / 还原 |
 | `bash install-daemon.sh` | 安装守护进程：🎨 主题中心 + 皮肤自动恢复 + 恢复提醒 |
 | `bash uninstall-daemon.sh` | 卸载守护进程 |
+| `bash uninstall.sh` | 一键彻底卸载：移除页面注入、守护进程、启动器、launchd 注册、/tmp 残留，最后询问是否删工具目录（`--keep-dir` 保留目录，`--yes` 跳过确认） |
 | `bash make-launcher.sh` | 生成「ZCode 皮肤.app」启动器到 ~/Applications |
 | `bash apply-skin.sh` | 首次启用：带调试端口重启 ZCode 并注入（ZCode 被普通重启后也用它恢复） |
 | `node apply.mjs --list` | 列出全部主题 |
@@ -180,6 +182,7 @@ zcode-skin/
 ├── apply-skin.sh             # 首次启用入口（launchd 一次性重启+注入）
 ├── install-daemon.sh         # 安装皮肤守护进程（LaunchAgent）
 ├── uninstall-daemon.sh       # 卸载守护进程
+├── uninstall.sh              # 一键彻底卸载（页面注入/守护进程/启动器/launchd/工具目录）
 ├── daemon.mjs                # 守护进程：主题中心数据服务 + 皮肤保活 + 恢复提醒
 ├── apply.mjs                 # 注入器
 ├── create-theme.mjs          # 图片自动生成主题

@@ -28,6 +28,7 @@ description: Use when 用户想给 ZCode 桌面客户端换皮肤、装主题、
 | 首次启用 / 端口丢失后恢复 | `bash $SKIN/apply-skin.sh`（会重启 ZCode，先征得用户同意） |
 | 装守护进程（主题中心/保活/通知） | `bash $SKIN/install-daemon.sh` |
 | 卸载守护进程 | `bash $SKIN/uninstall-daemon.sh` |
+| 彻底卸载（页面注入/守护进程/启动器/launchd/工具目录） | `bash $SKIN/uninstall.sh`（`--yes` 跳过确认；`--keep-dir` 保留工具目录） |
 | 生成「ZCode 皮肤.app」启动器 | `bash $SKIN/make-launcher.sh` |
 | 一张图做主题 | `node $SKIN/create-theme.mjs --image <图> --name "名字"` |
 

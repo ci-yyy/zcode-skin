@@ -60,6 +60,7 @@ it once:
 bash apply-skin.sh        # quits ZCode → relaunches with port 9343 → injects the default skin
 bash install-daemon.sh    # optional: theme center + auto-recovery + notifications
 bash make-launcher.sh     # optional: "ZCode 皮肤.app" in ~/Applications
+bash uninstall.sh         # remove everything: page injections + daemon + launcher + launchd + tool dir
 ```
 
 Daily switching never restarts ZCode and takes effect immediately:
@@ -123,6 +124,7 @@ Anime artwork belongs to its respective rights holders; for personal use only.
 |---|---|
 | `bash use-skin.sh [number/name/restore]` | Interactive menu or direct switch |
 | `bash install-daemon.sh` / `bash uninstall-daemon.sh` | Install / uninstall the daemon |
+| `bash uninstall.sh` | Full uninstall: removes page injections, the daemon, the launcher app, launchd registrations, and /tmp leftovers; asks before deleting the tool directory (`--keep-dir` keeps it, `--yes` skips prompts) |
 | `bash make-launcher.sh` | Generate the "ZCode 皮肤.app" launcher |
 | `bash apply-skin.sh` | First-time enable / recovery after a normal restart |
 | `node apply.mjs --list` / `--status` | List themes / query current skin state |
