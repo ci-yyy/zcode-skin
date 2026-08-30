@@ -1,6 +1,6 @@
 {
   "name": "zcode-skin",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "macOS 单机 ZCode 换肤工具：CSS 变量注入 + 主题中心面板 + 皮肤守护进程（零依赖，Node 22+）",
   "type": "module",
   "private": true,

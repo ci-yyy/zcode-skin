@@ -1,5 +1,15 @@
 # 更新日志（CHANGELOG）
 
+## 1.2.3（2026-08-30）卸载脚本崩溃修复
+
+- **修复 uninstall.sh 第 6 步崩溃（`DIR?: unbound variable`）**：`$DIR` 后紧跟
+  全角字符（如 `？`、`）`）时，bash 在 UTF-8 locale 下会把多字节字符并入变量名
+  （实际找的是变量 `DIR？`），`set -u` 下直接中止——删除确认框弹不出来、工具目录
+  残留。全库扫描出 4 处同类写法（uninstall.sh ×3、install-daemon.sh ×1），
+  统一改为 `${VAR}` 显式定界；confirm 的 read 加 EOF 兜底
+- **新增 shell 静态检查测试**：扫描所有 `.sh` 中 `$VAR`+多字节字符组合，
+  此类问题以后 `npm test` 直接拦截
+
 ## 1.2.2（2026-08-30）一键彻底卸载
 
 - **新增 `uninstall.sh`**：一条命令卸载全部痕迹，六步幂等清理——① CDP 移除 ZCode

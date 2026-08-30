@@ -17,9 +17,9 @@
 
 </div>
 
-> ## 🆕 1.2.2 更新：一键彻底卸载
+> ## 🆕 1.2.3 更新：卸载脚本崩溃修复
 >
-> 新增 `uninstall.sh`：一条命令卸载全部痕迹——移除 ZCode 页面注入、注销 launchd 注册、卸载守护进程、删除启动器 App、清 /tmp 残留，最后确认后删工具目录（`--keep-dir` 保留目录、`--yes` 免确认），重复运行安全，不碰 ZCode 本体与会话数据。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
+> 修复 v1.2.2 `uninstall.sh` 第 6 步的 `unbound variable` 崩溃：`$DIR` 后紧跟全角字符时 bash 会把它并进变量名，删除确认框弹不出来、工具目录残留。全库 4 处同类写法统一改为 `${VAR}`，并新增 shell 静态检查测试（`$VAR`+多字节字符组合直接测试失败）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 它长这样
 
@@ -172,7 +172,7 @@ ZCode 刷新或升级后按钮和面板消失的话，守护进程 5 秒内自�
 | `node create-theme.mjs --image <图> --name <名>` | 图片生成新主题 |
 | `node restore.mjs` | 还原官方外观（效果同 `use-skin.sh 还原`） |
 | `node diag.mjs` | 一站式体检：守护进程/端口/主窗口/注入状态/state.json |
-| `npm test` | 跑测试套件（`node --test`，119 个用例，零依赖） |
+| `npm test` | 跑测试套件（`node --test`，120 个用例，零依赖） |
 
 ## 文件结构
 
@@ -204,7 +204,7 @@ zcode-skin/
 │   ├── panel.js              # 主题中心界面（注入 ZCode 内运行）
 │   ├── state.mjs             # state.json 读写（主题 + 设置开关）
 │   └── menu.mjs              # use-skin.sh 交互菜单
-├── test/                     # 测试套件（7 个文件，119 个用例，node --test）
+├── test/                     # 测试套件（7 个文件，120 个用例，node --test）
 ├── skill/zcode-skin/         # AI Skill（可交给 ZCode/Agent 直接操作本工具）
 ├── docs/theme-prompts.md     # 主题背景图生成提示词库（8 套风格）
 ├── themes/                   # 22 套主题，一目录一套

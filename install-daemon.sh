@@ -28,7 +28,7 @@ fi
 # 工具目录不能在 Downloads/Desktop/Documents（launchd 无法执行，macOS 隐私保护）
 case "$DIR" in
   */Downloads/*|*/Desktop/*|*/Documents/*)
-    echo "❌ 工具目录在受 macOS 保护的文件夹里（$DIR），launchd 无法执行这里的脚本。"
+    echo "❌ 工具目录在受 macOS 保护的文件夹里（${DIR}），launchd 无法执行这里的脚本。"
     echo "   请把整个目录移到比如 ~/zcode-skin 再安装。"
     exit 1
     ;;

@@ -42,10 +42,10 @@ cat > "$APP_DIR/Contents/Info.plist" <<'EOF'
   <key>CFBundleName</key><string>ZCode 皮肤</string>
   <key>CFBundleDisplayName</key><string>ZCode 皮肤</string>
   <key>CFBundleIdentifier</key><string>dev.zcode.skin.launcher</string>
-  <key>CFBundleVersion</key><string>1.2.2</string>
+  <key>CFBundleVersion</key><string>1.2.3</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>ZCodeSkinLauncher</string>
-  <key>CFBundleShortVersionString</key><string>1.2.2</string>
+  <key>CFBundleShortVersionString</key><string>1.2.3</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>LSUIElement</key><true/>

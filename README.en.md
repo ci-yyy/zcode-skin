@@ -17,12 +17,13 @@ One image becomes one theme. After setup, switching skins is a single click in t
 
 </div>
 
-> ## 🆕 1.2.2: one-command full uninstall
+> ## 🆕 1.2.3: uninstaller crash fix
 >
-> New `uninstall.sh` removes every trace in one go — page injections, launchd registrations,
-> the daemon, the launcher app, /tmp leftovers — then deletes the tool directory after
-> confirmation (`--keep-dir` keeps it, `--yes` skips prompts). Idempotent, and it never touches
-> ZCode itself or session data. Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
+> Fixes the `unbound variable` crash in v1.2.2's `uninstall.sh` step 6: when a full-width
+> character directly follows `$DIR`, bash merges it into the variable name, so the delete
+> confirmation never appeared and the tool directory was left behind. All 4 occurrences
+> across the repo now use `${VAR}`, and a new shell lint test fails on any `$VAR` followed
+> by a multibyte character. Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
 
 ## What it is
 
@@ -46,7 +47,7 @@ session data — only CSS variables are overridden, so the UI stays fully native
   require regenerating it.
 - **Reading enhancement** (off by default): an optional 90% theme-aware translucent backdrop for
   AI replies and thinking blocks.
-- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 119 cases).
+- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 120 cases).
 
 ## Quick start
 
@@ -131,7 +132,7 @@ Anime artwork belongs to its respective rights holders; for personal use only.
 | `node create-theme.mjs --image <file> --name <name>` | Build a theme from an image |
 | `node restore.mjs` | Restore the official look |
 | `node diag.mjs` | One-shot health check with fix hints |
-| `npm test` | Run the test suite (119 cases, zero deps) |
+| `npm test` | Run the test suite (120 cases, zero deps) |
 
 ## Honest notes
 

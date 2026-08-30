@@ -26,7 +26,7 @@ for arg in "$@"; do
   case "$arg" in
     --yes|-y) ASSUME_YES=1 ;;
     --keep-dir) KEEP_DIR=1 ;;
-    *) echo "未知参数：$arg（可用：--yes --keep-dir）"; exit 2 ;;
+    *) echo "未知参数：${arg}（可用：--yes --keep-dir）"; exit 2 ;;
   esac
 done
 
@@ -44,9 +44,9 @@ skip() { echo "ℹ️  $1"; }
 
 confirm() { # confirm "问题" → 0=是
   [ "$ASSUME_YES" = "1" ] && return 0
-  local answer
-  printf "%s [y/N] " "$1"
-  read -r answer
+  local answer=""
+  printf "%s " "$1"
+  read -r answer || answer=""   # EOF（Ctrl+D）时按否处理，不触发 set -u
   [[ "$answer" =~ ^[Yy] ]]
 }
 
@@ -130,9 +130,9 @@ if [ "$KEEP_DIR" = "1" ]; then
   skip "按 --keep-dir 保留工具目录：$DIR"
 elif [ "$DIR" = "$HOME" ] || [ "$DIR" = "/" ] || [ "${#DIR}" -lt 8 ]; then
   # 防御：目录路径看着不对劲就不删（避免脚本被拷到奇怪位置后误删）
-  skip "目录路径可疑（$DIR），跳过自删。确认后手动执行：rm -rf \"$DIR\""
+  skip "目录路径可疑（${DIR}），跳过自删。确认后手动执行：rm -rf \"$DIR\""
 else
-  if confirm "删除工具目录 $DIR？（包含全部主题与自定义主题，不可恢复）"; then
+  if confirm "删除工具目录 ${DIR}？（包含全部主题与自定义主题，不可恢复）"; then
     # 自删：先确认这个目录确实是 zcode-skin（有 daemon.mjs + uninstall.sh 特征）
     if [ -f "$DIR/daemon.mjs" ] && [ -f "$DIR/uninstall.sh" ]; then
       echo "  正在删除……"
