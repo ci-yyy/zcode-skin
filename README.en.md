@@ -17,15 +17,12 @@ One image becomes one theme. After setup, switching skins is a single click in t
 
 </div>
 
-> ## 🆕 1.2.1: launcher crash fix + launchd residue cleanup
+> ## 🆕 1.2.2: one-command full uninstall
 >
-> The "ZCode 皮肤.app" launcher no longer crashes on double-click: the old applet bundle was
-> malformed, so it was rebuilt as a standard bash-wrapper app whose logic lives in
-> `launcher-app.sh` (logic updates no longer require regenerating the app). `apply-skin.sh` now
-> uses `launchctl bootstrap/bootout` with a result-marker file and an EXIT trap — no leftover
-> LaunchAgent registrations even if interrupted with Ctrl+C. CDP injection targets are restricted
-> to `file://` pages only, and the daemon's HTTP API moved to `lib/http-api.mjs`. Test suite:
-> 114 cases, all green (`npm test`). Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
+> New `uninstall.sh` removes every trace in one go — page injections, launchd registrations,
+> the daemon, the launcher app, /tmp leftovers — then deletes the tool directory after
+> confirmation (`--keep-dir` keeps it, `--yes` skips prompts). Idempotent, and it never touches
+> ZCode itself or session data. Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
 
 ## What it is
 
@@ -49,7 +46,7 @@ session data — only CSS variables are overridden, so the UI stays fully native
   require regenerating it.
 - **Reading enhancement** (off by default): an optional 90% theme-aware translucent backdrop for
   AI replies and thinking blocks.
-- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 114 cases).
+- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 119 cases).
 
 ## Quick start
 
@@ -134,7 +131,7 @@ Anime artwork belongs to its respective rights holders; for personal use only.
 | `node create-theme.mjs --image <file> --name <name>` | Build a theme from an image |
 | `node restore.mjs` | Restore the official look |
 | `node diag.mjs` | One-shot health check with fix hints |
-| `npm test` | Run the test suite (114 cases, zero deps) |
+| `npm test` | Run the test suite (119 cases, zero deps) |
 
 ## Honest notes
 

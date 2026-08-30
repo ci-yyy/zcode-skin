@@ -8,6 +8,9 @@
   启动器 ⑤ 清 /tmp 临时文件 ⑥ 询问后删工具目录。`--yes` 跳过确认、`--keep-dir`
   只清外部痕迹保留目录；目录自删前校验特征文件（daemon.mjs + uninstall.sh），
   脚本被拷到别处不会误删；ZCode 本体、会话数据、设置均不触碰
+- **新增版本口径一致性测试**（`test/version.test.mjs`，5 个用例）：README 中英文
+  头条块、CHANGELOG 小节、启动器 bundle 版本、README 用例数任一与 package.json
+  /实际不符即测试失败——杜绝发版时「CHANGELOG 更了 README 头条忘更」的反复遗漏
 
 ## 1.2.1（2026-08-29）启动器重写 + 残留治理
 
