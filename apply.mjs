@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { DEFAULT_PORT, CdpSession, classifyTargets, listTargets, pickMainWindow } from "./lib/cdp.mjs";
 import { STYLE_ID, buildSkinCss, loadTheme } from "./lib/theme.mjs";
 import { updateState } from "./lib/state.mjs";
-import { panelInjectionScript, panelRemovalScript, skinInjectionScript, statusScript } from "./lib/inject.mjs";
+import { domReadyScript, panelInjectionScript, panelRemovalScript, skinInjectionScript, statusScript } from "./lib/inject.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const API_PORT = 9344;
@@ -92,6 +92,21 @@ async function waitForMainWindow(port, waitMs) {
   throw new Error(`等不到 ZCode 主窗口（端口 ${port}）。看到的页面：\n${seen}`);
 }
 
+// 窗口出现 ≠ 页面就绪：刚重启时窗口目标已列出但 DOM 还没解析（head 为 null），
+// 直接注入会 `appendChild of null`。等 DOM 就绪再操作
+async function waitDomReady(session, waitMs) {
+  const deadline = Date.now() + waitMs;
+  while (Date.now() < deadline) {
+    try {
+      if (await session.evaluate(domReadyScript())) return true;
+    } catch {
+      // 连接闪断（页面导航中），继续等
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  return false;
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
 
@@ -109,6 +124,8 @@ async function main() {
   const target = await waitForMainWindow(opts.port, opts.waitMs);
   const session = await new CdpSession(target.webSocketDebuggerUrl).open();
   try {
+    await waitDomReady(session, opts.waitMs);
+
     if (opts.status) {
       const status = await session.evaluate(statusScript());
       console.log(JSON.stringify(status, null, 2));

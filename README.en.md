@@ -17,13 +17,14 @@ One image becomes one theme. After setup, switching skins is a single click in t
 
 </div>
 
-> ## 🆕 1.2.3: uninstaller crash fix
+> ## 🆕 1.2.4: post-restart injection failure fix
 >
-> Fixes the `unbound variable` crash in v1.2.2's `uninstall.sh` step 6: when a full-width
-> character directly follows `$DIR`, bash merges it into the variable name, so the delete
-> confirmation never appeared and the tool directory was left behind. All 4 occurrences
-> across the repo now use `${VAR}`, and a new shell lint test fails on any `$VAR` followed
-> by a multibyte character. Full history in [CHANGELOG.md](CHANGELOG.md) (Chinese).
+> Fixes `apply-skin.sh` failing with `Cannot read properties of null (reading 'appendChild')`
+> after relaunching ZCode: the window target appears in `/json/list` before its document is
+> parsed, and the old code injected immediately with no retry. Injection now waits for DOM
+> readiness; injection scripts return `notReady` for callers to retry, and the daemon poller
+> understands it. New regression tests simulate the no-DOM environment. Full history in
+> [CHANGELOG.md](CHANGELOG.md) (Chinese).
 
 ## What it is
 
@@ -47,7 +48,7 @@ session data — only CSS variables are overridden, so the UI stays fully native
   require regenerating it.
 - **Reading enhancement** (off by default): an optional 90% theme-aware translucent backdrop for
   AI replies and thinking blocks.
-- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 120 cases).
+- **Zero dependencies**: Node.js 22+ built-ins only (`node --test` suite, 126 cases).
 
 ## Quick start
 
@@ -132,7 +133,7 @@ Anime artwork belongs to its respective rights holders; for personal use only.
 | `node create-theme.mjs --image <file> --name <name>` | Build a theme from an image |
 | `node restore.mjs` | Restore the official look |
 | `node diag.mjs` | One-shot health check with fix hints |
-| `npm test` | Run the test suite (120 cases, zero deps) |
+| `npm test` | Run the test suite (126 cases, zero deps) |
 
 ## Honest notes
 

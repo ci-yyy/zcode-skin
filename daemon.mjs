@@ -206,7 +206,7 @@ async function pollOnce() {
   } catch {
     return; // 窗口还没就绪（ZCode 正在启动），下轮再看
   }
-  if (!health) return;
+  if (!health || health.notReady) return; // DOM 未解析（刚重启），下轮再看
 
   // 皮肤常驻关闭时：不注入、不维护，但已注入的东西也不主动撤（本次会话继续用）
   if (!state.persistence) return;

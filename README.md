@@ -17,9 +17,9 @@
 
 </div>
 
-> ## 🆕 1.2.3 更新：卸载脚本崩溃修复
+> ## 🆕 1.2.4 更新：重启后注入失败修复
 >
-> 修复 v1.2.2 `uninstall.sh` 第 6 步的 `unbound variable` 崩溃：`$DIR` 后紧跟全角字符时 bash 会把它并进变量名，删除确认框弹不出来、工具目录残留。全库 4 处同类写法统一改为 `${VAR}`，并新增 shell 静态检查测试（`$VAR`+多字节字符组合直接测试失败）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
+> 修复 `apply-skin.sh` 重启 ZCode 后报 `Cannot read properties of null (reading 'appendChild')`：窗口刚出现时页面文档还没解析完，旧版拿到窗口就注入必炸且无重试。现在注入前等 DOM 就绪，注入脚本对未就绪状态返回 notReady 由调用方重试；守护进程巡检同步识别。新增注入脚本回归测试（无 DOM 环境模拟）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 它长这样
 
@@ -172,7 +172,7 @@ ZCode 刷新或升级后按钮和面板消失的话，守护进程 5 秒内自�
 | `node create-theme.mjs --image <图> --name <名>` | 图片生成新主题 |
 | `node restore.mjs` | 还原官方外观（效果同 `use-skin.sh 还原`） |
 | `node diag.mjs` | 一站式体检：守护进程/端口/主窗口/注入状态/state.json |
-| `npm test` | 跑测试套件（`node --test`，120 个用例，零依赖） |
+| `npm test` | 跑测试套件（`node --test`，126 个用例，零依赖） |
 
 ## 文件结构
 
@@ -204,7 +204,7 @@ zcode-skin/
 │   ├── panel.js              # 主题中心界面（注入 ZCode 内运行）
 │   ├── state.mjs             # state.json 读写（主题 + 设置开关）
 │   └── menu.mjs              # use-skin.sh 交互菜单
-├── test/                     # 测试套件（7 个文件，120 个用例，node --test）
+├── test/                     # 测试套件（7 个文件，126 个用例，node --test）
 ├── skill/zcode-skin/         # AI Skill（可交给 ZCode/Agent 直接操作本工具）
 ├── docs/theme-prompts.md     # 主题背景图生成提示词库（8 套风格）
 ├── themes/                   # 22 套主题，一目录一套

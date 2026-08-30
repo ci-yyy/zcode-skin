@@ -1,5 +1,17 @@
 # 更新日志（CHANGELOG）
 
+## 1.2.4（2026-08-30）重启后注入失败修复
+
+- **修复 apply-skin.sh 重启 ZCode 后注入必败**：报
+  `TypeError: Cannot read properties of null (reading 'appendChild')`。根因是竞态——
+  ZCode 刚重启时主窗口目标已出现在 CDP `/json/list`，但页面文档还没开始解析
+  （`document.head`/`documentElement` 均为 null），旧版拿到窗口立即注入且无重试
+- **注入前等 DOM 就绪**（apply.mjs 新增 `waitDomReady`，每 300ms 轮询，连接
+  闪断也继续等）；皮肤/阅读增强/巡检健康检查三个注入脚本对未就绪状态统一返回
+  `{ notReady: true }` 而不是抛错，daemon 巡检识别 notReady 静默下轮再看
+- 新增 `test/inject.test.mjs`（6 个用例）：用 `node:vm` 模拟无 DOM / 最小 DOM
+  环境验证注入脚本行为，防回归
+
 ## 1.2.3（2026-08-30）卸载脚本崩溃修复
 
 - **修复 uninstall.sh 第 6 步崩溃（`DIR?: unbound variable`）**：`$DIR` 后紧跟
