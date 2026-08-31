@@ -17,14 +17,9 @@ One image becomes one theme. After setup, switching skins is a single click in t
 
 </div>
 
-> ## 🆕 1.2.4: post-restart injection failure fix
+> ## 🆕 1.2.5: Full-transparency hero images
 >
-> Fixes `apply-skin.sh` failing with `Cannot read properties of null (reading 'appendChild')`
-> after relaunching ZCode: the window target appears in `/json/list` before its document is
-> parsed, and the old code injected immediately with no retry. Injection now waits for DOM
-> readiness; injection scripts return `notReady` for callers to retry, and the daemon poller
-> understands it. New regression tests simulate the no-DOM environment. Full history in
-> [CHANGELOG.md](CHANGELOG.md) (Chinese).
+> The `backgroundAlt` veil (a 55% dark scrim covering the whole window) is now forced fully transparent for hero themes: the background image shows through 100% in sidebar/list/chat/right pane, with only the input box kept opaque. See [CHANGELOG.md](CHANGELOG.md). (Chinese).
 
 ## What it is
 

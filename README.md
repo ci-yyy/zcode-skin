@@ -17,9 +17,9 @@
 
 </div>
 
-> ## 🆕 1.2.4 更新：重启后注入失败修复
+> ## 🆕 1.2.5 更新：背景图全透模式
 >
-> 修复 `apply-skin.sh` 重启 ZCode 后报 `Cannot read properties of null (reading 'appendChild')`：窗口刚出现时页面文档还没解析完，旧版拿到窗口就注入必炸且无重试。现在注入前等 DOM 就绪，注入脚本对未就绪状态返回 notReady 由调用方重试；守护进程巡检同步识别。新增注入脚本回归测试（无 DOM 环境模拟）。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
+> hero 主题的 `backgroundAlt` 蒙层（55% 黑纱铺满全窗）强制全透明：侧栏/会话列表/对话区/右栏的背景图 100% 直出，仅输入框保留实底。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 它长这样
 
